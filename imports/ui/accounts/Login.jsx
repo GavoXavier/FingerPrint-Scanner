@@ -12,9 +12,8 @@ export default function Login() {
     e.preventDefault();
     Meteor.loginWithPassword(username, password, (error) => {
       if (error) {
-        alert('Login Failed: ' + error.reason);
+        alert(`Login Failed: ${error.reason}`);
       } else {
-        // Redirect based on role
         if (Roles.userIsInRole(Meteor.userId(), 'admin')) {
           navigate('/admin');
         } else {
@@ -25,27 +24,27 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-xs">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-500 to-blue-500">
+      <form onSubmit={handleSubmit} className="w-full max-w-xs p-8 bg-white rounded-lg shadow-xl">
         <input
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="mb-4 w-full px-3 py-2 border rounded shadow"
+          className="mb-4 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-4 w-full px-3 py-2 border rounded shadow"
+          className="mb-4 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
           Log In
         </button>
-        <p className="mt-4 text-center">
-          Don't have an account? <a href="/register" className="text-blue-500 hover:text-blue-700">Register Here</a>
+        <p className="mt-4 text-center text-black">
+          Don't have an account? <a href="/register" className="text-purple-800 hover:text-blue-400">Register Here</a>
         </p>
       </form>
     </div>

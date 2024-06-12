@@ -1,36 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import { Meteor } from 'meteor/meteor';
+import { Tracker } from 'meteor/tracker';
+import { Sessions } from '../api/Sessions';
+import { Coaches } from '../api/Coaches';
+import { Rooms } from '../api/Rooms';
+import SportsCard from './SportsCard';
 
-const SportsCard = ({ sportDetails }) => {
-    return (
-        <div className="p-4 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md">
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">{sportDetails.sportName}</h5>
-            <p>Coach: {sportDetails.coachName}</p>
-            <p>Venue: {sportDetails.venue}</p>
-            <p>Slots available: {sportDetails.slots}</p>
-            <button className="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Book Now
-            </button>
-        </div>
-    );
-};
+export default function SportsCards({ date }) {
+  const [sessions, setSessions] = useState([]);
+  const [coaches, setCoaches] = useState([]);
+  const [rooms, setRooms] = useState([]);
 
-export default function SportsCards({ selectedDate }) {
-    const [sportsData, setSportsData] = useState([]);
+  useEffect(() => {
+    const handle = Tracker.autorun(() => {
+      Meteor.subscribe('sessions', date);
+      Meteor.subscribe('coaches');
+      Meteor.subscribe('rooms');
+      const sessionData = Sessions.find({ date }).fetch();
+      const coachData = Coaches.find().fetch();
+      const roomData = Rooms.find().fetch();
+      setSessions(sessionData);
+      setCoaches(coachData);
+      setRooms(roomData);
+    });
 
-    useEffect(() => {
-        // Simulate fetching data based on the selected date
-        setSportsData([
-            { id: 1, sportName: 'Football', coachName: 'John Doe', venue: 'Stadium A', slots: 12 },
-            { id: 2, sportName: 'Tennis', coachName: 'Jane Doe', venue: 'Court 3', slots: 4 },
-            // More sports
-        ]);
-    }, [selectedDate]);
+    return () => handle.stop();
+  }, [date]);
 
-    return (
-        <div className="grid grid-cols-3 gap-4">
-            {sportsData.map(sport => (
-                <SportsCard key={sport.id} sportDetails={sport} />
-            ))}
-        </div>
-    );
+  const getCoachName = (coachId) => {
+    const coach = coaches.find((c) => c._id === coachId);
+    return coach ? coach.fullName : 'Unknown';
+  };
+
+  const getRoomName = (roomId) => {
+    const room = rooms.find((r) => r._id === roomId);
+    return room ? room.name : 'Unknown';
+  };
+
+  return (
+    <div className="py-4 px-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg shadow-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {sessions.map((sport) => (
+          <SportsCard
+            key={sport._id}
+            sportDetails={sport}
+            coachName={getCoachName(sport.coachId)}
+            roomName={getRoomName(sport.roomId)}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

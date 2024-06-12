@@ -23,3 +23,6 @@ react-meteor-data       # React higher-order component for reactively tracking M
 accounts-base
 accounts-password
 alanning:roles
+aldeed:simple-schema
+aldeed:collection2
+email

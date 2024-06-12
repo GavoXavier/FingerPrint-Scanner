@@ -2,18 +2,18 @@ import { Accounts } from 'meteor/accounts-base';
 import { Roles } from 'meteor/alanning:roles';
 
 Accounts.onCreateUser((options, user) => {
+  user.profile = options.profile || {};
   user.roles = [];
+  user.profile.walletBalance = 0; // Initialize wallet balance to 0
 
-  // Assign roles based on the username
   if (options.username === "Admin") {
     user.roles.push('admin');
   } else {
     user.roles.push('user');
   }
 
-  // Include profile information
-  if (options.profile) {
-    user.profile = options.profile;
+  if (options.profile && options.profile.picture) {
+    user.profile.picture = options.profile.picture;
   }
 
   return user;
