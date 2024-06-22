@@ -3,21 +3,16 @@ import { Sessions } from '../imports/api/Sessions';
 import { Bookings } from '../imports/api/Bookings';
 import { Coaches } from '../imports/api/Coaches';
 import { Rooms } from '../imports/api/Rooms';
+import { Roles } from 'meteor/alanning:roles';
 
-// Publish all sessions or sessions on a specific date
-Meteor.publish('sessions', function (date) {
-  if (date) {
-    return Sessions.find({ date });
-  }
+Meteor.publish('sessions', function () {
   return Sessions.find();
 });
 
-// Publish all bookings
 Meteor.publish('bookings', function () {
   return Bookings.find();
 });
 
-// Publish user-specific bookings
 Meteor.publish('userBookings', function () {
   if (!this.userId) {
     return this.ready();
@@ -25,20 +20,41 @@ Meteor.publish('userBookings', function () {
   return Bookings.find({ userId: this.userId });
 });
 
-// Publish all coaches
 Meteor.publish('coaches', function () {
   return Coaches.find();
 });
 
-// Publish all rooms
 Meteor.publish('rooms', function () {
   return Rooms.find();
 });
 
-// Publish pending unbooking requests for admin
 Meteor.publish('unbookingRequests', function () {
   if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
     return this.ready();
   }
-  return Bookings.find({ status: 'Pending Unbooking' });
+  return Bookings.find({ status: 'Awaiting Approval for Unbooking' });
+});
+
+Meteor.publish('adminPayments', function () {
+  if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
+    return this.ready();
+  }
+  return Bookings.find({ status: 'Awaiting Confirmation' });
+});
+
+Meteor.publish('allUsers', function () {
+  if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
+    return this.ready();
+  }
+
+  return Meteor.users.find({}, {
+    fields: {
+      username: 1,
+      profile: 1,
+      emails: 1,
+      roles: 1,
+      bookings: 1,
+      status: 1,
+    }
+  });
 });

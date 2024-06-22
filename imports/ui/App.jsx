@@ -19,7 +19,10 @@ import UserLayout from './UserLayout';
 import Checkout from './Checkout';
 import AdminPanel from './admin/AdminPanel';
 import AdminUnbookingRequests from './admin/AdminUnbookingRequests';
-import DepositWithdraw from './DepositWithdraw';
+import AdminPaymentConfirmations from './admin/AdminPaymentConfirmations';
+import Paybill from './Paybill';
+import Wallet from './Wallet';
+import WalletPayment from './WalletPayment'; // Import WalletPayment component
 
 export default function App() {
   return (
@@ -35,7 +38,9 @@ export default function App() {
           <Route path="/rooms-list" element={<RoomsList />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/checkout/:sessionId" element={<Checkout />} />
-          <Route path="/deposit-withdraw" element={<DepositWithdraw />} />
+          <Route path="/paybill/:sessionId" element={<Paybill />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/wallet-payment/:sessionId" element={<WalletPayment />} /> // Add WalletPayment route
         </Route>
         <Route path="/admin" element={<AdminPanel />}>
           <Route path="create-session" element={<CreateSessionForm />} />
@@ -46,6 +51,7 @@ export default function App() {
           <Route path="coach-list" element={<AdminCoachesList />} />
           <Route path="manage-rooms" element={<ManageRooms />} />
           <Route path="unbooking-requests" element={<AdminUnbookingRequests />} />
+          <Route path="payment-confirmations" element={<AdminPaymentConfirmations />} />
         </Route>
       </Routes>
     </Router>

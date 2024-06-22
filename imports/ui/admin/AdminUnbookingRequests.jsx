@@ -16,7 +16,7 @@ export default function AdminUnbookingRequests() {
       Meteor.subscribe('coaches');
       Meteor.subscribe('rooms');
 
-      const pendingUnbookingData = Bookings.find({ status: 'Pending Unbooking' }).fetch();
+      const pendingUnbookingData = Bookings.find({ status: 'Awaiting Approval for Unbooking' }).fetch();
       const pendingUnbookingDetails = pendingUnbookingData.map((booking) => {
         const session = Sessions.findOne({ _id: booking.sessionId });
         const coach = session ? Coaches.findOne({ _id: session.coachId }) : {};
@@ -35,7 +35,7 @@ export default function AdminUnbookingRequests() {
   }, []);
 
   const handleApprove = (bookingId) => {
-    Meteor.call('approveUnbooking', bookingId, (error) => {
+    Meteor.call('approveUnbooking', { bookingId }, (error) => {
       if (error) {
         alert('Approval failed: ' + error.reason);
       } else {
@@ -45,7 +45,7 @@ export default function AdminUnbookingRequests() {
   };
 
   const handleReject = (bookingId) => {
-    Meteor.call('rejectUnbooking', bookingId, (error) => {
+    Meteor.call('rejectUnbooking', { bookingId }, (error) => {
       if (error) {
         alert('Rejection failed: ' + error.reason);
       } else {

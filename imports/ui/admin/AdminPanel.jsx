@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import AdminWalletBalance from './AdminWalletBalance'; // Import the new component
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -88,6 +87,14 @@ export default function AdminPanel() {
               </Link>
             </li>
             <li>
+              <Link
+                to="payment-confirmations"
+                className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Payment Confirmations
+              </Link>
+            </li>
+            <li>
               <a
                 href="#"
                 onClick={handleLogout}
@@ -98,7 +105,6 @@ export default function AdminPanel() {
             </li>
           </ul>
         </div>
-        <AdminWalletBalance /> {/* Add the admin wallet balance component */}
       </div>
       <div className="flex-grow p-6 bg-gray-100 overflow-y-auto">
         <Outlet />

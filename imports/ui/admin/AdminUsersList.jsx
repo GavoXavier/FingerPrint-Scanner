@@ -1,53 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Tracker } from 'meteor/tracker';
-import { Bookings } from '../../api/Bookings';
-import { Sessions } from '../../api/Sessions';
-import { Coaches } from '../../api/Coaches';
-import { Rooms } from '../../api/Rooms';
+import { useTracker } from 'meteor/react-meteor-data';
 
 export default function AdminUsersList() {
-  const [bookings, setBookings] = useState([]);
-
-  useEffect(() => {
-    const handle = Tracker.autorun(() => {
-      Meteor.subscribe('bookings');
-      Meteor.subscribe('sessions');
-      Meteor.subscribe('coaches');
-      Meteor.subscribe('rooms');
-
-      const bookingData = Bookings.find().fetch();
-      const bookingDetails = bookingData.map((booking) => {
-        const session = Sessions.findOne({ _id: booking.sessionId });
-        const coach = session ? Coaches.findOne({ _id: session.coachId }) : {};
-        const room = session ? Rooms.findOne({ _id: session.roomId }) : {};
-        return {
-          ...booking,
-          session,
-          coach,
-          room,
-        };
-      });
-      setBookings(bookingDetails);
-    });
-
-    return () => handle.stop();
+  const [loading, setLoading] = useState(true);
+  
+  const users = useTracker(() => {
+    const handle = Meteor.subscribe('allUsers');
+    if (!handle.ready()) {
+      setLoading(true);
+      return [];
+    }
+    setLoading(false);
+    return Meteor.users.find().fetch();
   }, []);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="mt-6 p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold text-gray-800">Users</h2>
-      <ul className="list-disc pl-5 mt-2">
-        {bookings.map((booking) => (
-          <li key={booking._id} className="mt-1 p-4 bg-gray-100 rounded-lg shadow">
-            <p><strong>Username:</strong> {booking.username}</p>
-            <p><strong>Session:</strong> {booking.session?.sportName}</p>
-            <p><strong>Venue:</strong> {booking.room?.name}</p>
-            <p><strong>Time:</strong> {booking.session?.time}</p>
-            <p><strong>Status:</strong> {booking.status}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="container mx-auto px-4 py-4">
+      <h2 className="text-2xl font-bold mb-4">Admin Users List</h2>
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b">Username</th>
+            <th className="py-2 px-4 border-b">Email</th>
+            <th className="py-2 px-4 border-b">Roles</th>
+            <th className="py-2 px-4 border-b">First Name</th>
+            <th className="py-2 px-4 border-b">Last Name</th>
+            <th className="py-2 px-4 border-b">Wallet Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user._id} className="text-center">
+              <td className="py-2 px-4 border-b">{user.username}</td>
+              <td className="py-2 px-4 border-b">{user.emails ? user.emails[0].address : 'No Email'}</td>
+              <td className="py-2 px-4 border-b">{user.roles ? user.roles.join(', ') : 'No Roles'}</td>
+              <td className="py-2 px-4 border-b">{user.profile && user.profile.firstName ? user.profile.firstName : 'N/A'}</td>
+              <td className="py-2 px-4 border-b">{user.profile && user.profile.lastName ? user.profile.lastName : 'N/A'}</td>
+              <td className="py-2 px-4 border-b">{user.profile && user.profile.walletBalance ? `Ksh.${user.profile.walletBalance.toFixed(2)}` : '0.00'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

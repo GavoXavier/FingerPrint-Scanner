@@ -3,10 +3,16 @@ import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
 import { Sessions } from './Sessions';
 import { Bookings } from './Bookings';
-import { Coaches } from './Coaches';
-import { Rooms } from './Rooms';
+import { Roles } from 'meteor/alanning:roles';
 
 Meteor.methods({
+  'bookings.getPending'() {
+    return Bookings.find({ status: 'Awaiting Confirmation' }).fetch();
+  },
+  'sessions.getSession'({ sessionId }) {
+    check(sessionId, String);
+    return Sessions.findOne(sessionId);
+  },
   'sessions.create'({ sportName, coachId, roomId, date, time, slots, fee }) {
     check(sportName, String);
     check(coachId, String);
@@ -28,13 +34,17 @@ Meteor.methods({
     });
   },
 
-  'sessions.book'({ sessionId, username, firstName, lastName, gender, phoneNumber }) {
+  'sessions.book'({ sessionId, userId, firstName, lastName, gender, phoneNumber, paymentMethod, confirmationCode }) {
     check(sessionId, String);
-    check(username, String);
+    check(userId, String);
     check(firstName, String);
     check(lastName, String);
     check(gender, String);
     check(phoneNumber, String);
+    check(paymentMethod, String);
+    if (paymentMethod === 'paybill') {
+      check(confirmationCode, String);
+    }
 
     const session = Sessions.findOne(sessionId);
     if (!session) {
@@ -45,24 +55,35 @@ Meteor.methods({
       throw new Meteor.Error('Session full', 'No more slots available for this session');
     }
 
+    let status = 'Paid';
+    if (paymentMethod === 'paybill') {
+      status = 'Awaiting Confirmation';
+    }
+
     Sessions.update(sessionId, { $inc: { slots: -1 } });
 
     Bookings.insert({
       sessionId,
-      username,
+      userId,
       firstName,
       lastName,
       gender,
       phoneNumber,
-      status: 'Paid',
+      paymentMethod,
+      confirmationCode,
+      status,
       bookedAt: new Date(),
     });
 
-    // Update admin wallet balance
-    const admin = Accounts.findUserByUsername('Admin');
-    if (admin) {
-      Meteor.users.update(admin._id, {
-        $inc: { 'profile.walletBalance': session.fee }
+    if (paymentMethod === 'wallet') {
+      const admin = Accounts.findUserByUsername('Admin');
+      if (admin) {
+        Meteor.users.update(admin._id, {
+          $inc: { 'profile.walletBalance': session.fee }
+        });
+      }
+      Meteor.users.update(userId, {
+        $inc: { 'profile.walletBalance': -session.fee }
       });
     }
   },
@@ -87,14 +108,14 @@ Meteor.methods({
     Bookings.remove({ sessionId });
   },
 
-  'sessions.unbook'({ bookingId, sessionId }) {
+  'sessions.unbookRequest'({ bookingId, sessionId }) {
     check(bookingId, String);
     check(sessionId, String);
 
-    Bookings.update(bookingId, { $set: { status: 'Pending Unbooking' } });
+    Bookings.update(bookingId, { $set: { status: 'Awaiting Approval for Unbooking' } });
   },
 
-  'approveUnbooking'(bookingId) {
+  'approveUnbooking'({ bookingId }) {
     check(bookingId, String);
 
     const booking = Bookings.findOne(bookingId);
@@ -106,7 +127,7 @@ Meteor.methods({
     Sessions.update(sessionId, { $inc: { slots: 1 } });
     Bookings.update(bookingId, { $set: { status: 'Unbooked' } });
 
-    const user = Meteor.users.findOne({ username: booking.username });
+    const user = Meteor.users.findOne({ _id: booking.userId });
     const session = Sessions.findOne({ _id: sessionId });
     if (user && session) {
       Meteor.users.update(user._id, { $inc: { 'profile.walletBalance': session.fee } });
@@ -117,10 +138,41 @@ Meteor.methods({
     }
   },
 
-  'rejectUnbooking'(bookingId) {
+  'rejectUnbooking'({ bookingId }) {
     check(bookingId, String);
 
     Bookings.update(bookingId, { $set: { status: 'Paid' } });
+  },
+
+  'approvePayment'({ bookingId }) {
+    check(bookingId, String);
+
+    const booking = Bookings.findOne(bookingId);
+    if (!booking) {
+      throw new Meteor.Error('Booking not found', 'The booking does not exist');
+    }
+
+    Bookings.update(bookingId, { $set: { status: 'Paid' } });
+
+    const session = Sessions.findOne({ _id: booking.sessionId });
+    const admin = Accounts.findUserByUsername('Admin');
+    if (admin && session) {
+      Meteor.users.update(admin._id, {
+        $inc: { 'profile.walletBalance': session.fee }
+      });
+    }
+  },
+
+  'rejectPayment'({ bookingId }) {
+    check(bookingId, String);
+
+    const booking = Bookings.findOne(bookingId);
+    if (!booking) {
+      throw new Meteor.Error('Booking not found', 'The booking does not exist');
+    }
+
+    Sessions.update(booking.sessionId, { $inc: { slots: 1 } });
+    Bookings.remove(bookingId);
   },
 
   'coaches.create'({ fullName, age, gender, contactNumber, speciality }) {
