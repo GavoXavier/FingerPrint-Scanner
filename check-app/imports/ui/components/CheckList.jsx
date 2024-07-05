@@ -39,13 +39,13 @@ export default function CheckList() {
             $gte: startOfDay,
             $lt: endOfDay,
           },
-          ...(selectedEmployee && { fingerprintId: selectedEmployee }),
+          ...(selectedEmployee && { employeeId: selectedEmployee }),
           ...(selectedStatus && { status: selectedStatus }),
         };
 
         const logs = CheckLogs.find(filter, { sort: { checkInTimestamp: -1 } }).fetch();
         const logsWithEmployeeDetails = logs.map((log) => {
-          const employee = Employees.findOne({ fingerprintId: log.fingerprintId });
+          const employee = Employees.findOne({ _id: log.employeeId });
           return { ...log, employee };
         });
         setCheckLogs(logsWithEmployeeDetails);
@@ -79,7 +79,7 @@ export default function CheckList() {
         >
           <option value="">All Employees</option>
           {employees.map((employee) => (
-            <option key={employee.fingerprintId} value={employee.fingerprintId}>
+            <option key={employee._id} value={employee._id}>
               {employee.fullName}
             </option>
           ))}
