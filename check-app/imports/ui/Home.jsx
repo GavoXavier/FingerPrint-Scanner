@@ -7,11 +7,14 @@ import { Tracker } from 'meteor/tracker';
 export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedUsername, setSelectedUsername] = useState('');
   const [employees, setEmployees] = useState([]);
   const [status, setStatus] = useState('');
   const [timestamp, setTimestamp] = useState('');
+  const [isWaiting, setIsWaiting] = useState(false); // New state for waiting mode
   const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     const handle = Meteor.subscribe('employees');
@@ -40,25 +43,49 @@ export default function Home() {
   };
 
   const handleCheckInOut = () => {
-    if (!selectedEmployee) {
+    if (!selectedUsername) {
       alert('Please select an employee');
       return;
     }
 
-    Meteor.call('checkLogs.insert', selectedEmployee, (error, result) => {
-      if (!error) {
-        setStatus(result);
-        setTimestamp(new Date().toLocaleString());
+    // Set to waiting mode
+    setIsWaiting(true);
 
-        // Reset status after some time
-        setTimeout(() => {
-          setStatus('');
-          setTimestamp('');
-        }, 5000);
+    // Function to handle the response from the C++ app
+    const handleApiResponse = (response) => {
+
+      if (response.username === selectedUsername) {
+        setIsWaiting(false);
+        // Proceed with the check-in/out logic
+        Meteor.call('checkLogs.insert', selectedUsername, (error, result) => {
+          if (!error) {
+            setStatus(result);
+            setTimestamp(new Date().toLocaleString());
+
+            // Reset status after some time
+            setTimeout(() => {
+              setStatus('');
+              setTimestamp('');
+            }, 5000);
+          } else {
+            alert('Error: ' + error.reason);
+          }
+        });
       } else {
-        alert('Error: ' + error.reason);
+        alert('Username mismatch. Try again.');
+        setIsWaiting(false);
       }
-    });
+    };
+
+    // Poll the server for the username from the C++ app
+    const intervalId = setInterval(() => {
+      Meteor.call('api.checkUsername', (error, response) => {
+        if (!error && response.username) {
+          clearInterval(intervalId); // Stop polling
+          handleApiResponse(response);
+        }
+      });
+    }, 1000); // Poll every second
   };
 
   return (
@@ -88,23 +115,23 @@ export default function Home() {
       </div>
       <div className="mt-4">
         <select
-          value={selectedEmployee}
-          onChange={(e) => setSelectedEmployee(e.target.value)}
+          value={selectedUsername}
+          onChange={(e) => setSelectedUsername(e.target.value)}
           className="block w-full px-3 py-2 border rounded-md"
         >
           <option value="">Select Employee</option>
           {employees.map((employee) => (
-            <option key={employee._id} value={employee._id}>
-              {employee.fullName}
+            <option key={employee._id} value={employee.username}>
+              {employee.username}
             </option>
           ))}
         </select>
         <button
-          onClick
-          ={handleCheckInOut}
+          onClick={handleCheckInOut}
           className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md"
+          disabled={isWaiting} // Disable button while waiting
         >
-          Check In/Out
+          {isWaiting ? 'Waiting for verification...' : 'Check In/Out'}
         </button>
         {status && (
           <div className="mt-4">

@@ -3,6 +3,9 @@ import '../imports/api/employees';
 import '../imports/api/checkLogs';
 import '../imports/api/methods';
 import '../imports/api/publications';
+import './api';
+
+
 
 Meteor.startup(() => {
   // Initialization code here
