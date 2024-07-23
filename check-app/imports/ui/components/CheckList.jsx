@@ -5,6 +5,7 @@ import { Tracker } from 'meteor/tracker';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import ReactToPrint from 'react-to-print';
+import { CSVLink } from 'react-csv';
 
 export default function CheckList() {
   const [checkLogs, setCheckLogs] = useState([]);
@@ -66,6 +67,14 @@ export default function CheckList() {
     setSelectedStatus(event.target.value);
   };
 
+  const csvData = checkLogs.map((log) => ({
+    fullName: log.employee?.fullName,
+    role: log.employee?.role,
+    checkInTimestamp: log.checkInTimestamp ? new Date(log.checkInTimestamp).toLocaleString() : '',
+    checkOutTimestamp: log.checkOutTimestamp ? new Date(log.checkOutTimestamp).toLocaleString() : '',
+    status: log.status,
+  }));
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Check Logs</h1>
@@ -117,6 +126,9 @@ export default function CheckList() {
           trigger={() => <button className="px-4 py-2 bg-blue-500 text-white rounded-md">Print</button>}
           content={() => componentRef.current}
         />
+        <CSVLink data={csvData} filename="check_logs.csv" className="px-4 py-2 bg-green-500 text-white rounded-md">
+          Export to CSV
+        </CSVLink>
       </div>
       <div ref={componentRef}>
         <table className="min-w-full bg-white border rounded-md" style={{ tableLayout: 'fixed' }}>
