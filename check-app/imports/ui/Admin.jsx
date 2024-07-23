@@ -1,43 +1,23 @@
-import React, { useState } from 'react';
+// imports/ui/Admin.jsx
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
 import Navbar1 from './components/Navbar1';
 import AddEmployee from './components/AddEmployee';
 import CheckList from './components/CheckList';
 import EmployeeListContainer from './components/EmployeeListContainer';
+import AdminDashboard from './components/AdminDashboard';
 
 export default function Admin() {
-  const [showAddEmployee, setShowAddEmployee] = useState(false);
-  const [showCheckList, setShowCheckList] = useState(false);
-  const [showEmployeeList, setShowEmployeeList] = useState(false);
-
-  const handleAddEmployeeClick = () => {
-    setShowAddEmployee(true);
-    setShowCheckList(false);
-    setShowEmployeeList(false);
-  };
-
-  const handleShowCheckListClick = () => {
-    setShowCheckList(true);
-    setShowAddEmployee(false);
-    setShowEmployeeList(false);
-  };
-
-  const handleShowEmployeeListClick = () => {
-    setShowEmployeeList(true);
-    setShowAddEmployee(false);
-    setShowCheckList(false);
-  };
-
   return (
     <div className="admin-dashboard">
-      <Navbar1
-        onAddEmployeeClick={handleAddEmployeeClick}
-        onShowCheckListClick={handleShowCheckListClick}
-        onShowEmployeeListClick={handleShowEmployeeListClick}
-      />
+      <Navbar1 />
       <div className="main-content p-4">
-        {showAddEmployee && <AddEmployee />}
-        {showCheckList && <CheckList />}
-        {showEmployeeList && <EmployeeListContainer />}
+        <Routes>
+          <Route path="admin-dashboard" element={<AdminDashboard />} />
+          <Route path="add-employee" element={<AddEmployee />} />
+          <Route path="check-list" element={<CheckList />} />
+          <Route path="employee-list" element={<EmployeeListContainer />} />
+        </Routes>
       </div>
     </div>
   );
