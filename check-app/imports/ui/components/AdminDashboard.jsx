@@ -1,109 +1,152 @@
+// imports/ui/components/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { Tracker } from 'meteor/tracker';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Bar } from 'react-chartjs-2';
-import 'chart.js/auto';
 import { Employees } from '../../api/employees';
 import { CheckLogs } from '../../api/checkLogs';
+import { Tracker } from 'meteor/tracker';
+import { Bar } from 'react-chartjs-2';
+import 'chart.js/auto';
 
 export default function AdminDashboard() {
-  const [totalEmployees, setTotalEmployees] = useState(0);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [employeeStats, setEmployeeStats] = useState({});
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [checkInsByWeek, setCheckInsByWeek] = useState({});
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [employeeStats, setEmployeeStats] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [employeeDetails, setEmployeeDetails] = useState(null);
+  const [weeklyCheckIns, setWeeklyCheckIns] = useState([]);
 
   useEffect(() => {
-    Tracker.autorun(() => {
-      setTotalEmployees(Employees.find().count());
+    const handle = Meteor.subscribe('employees');
+    const computation = Tracker.autorun(() => {
+      if (handle.ready()) {
+        const fetchedEmployees = Employees.find().fetch();
+        setTotalEmployees(fetchedEmployees.length);
+      }
     });
+
+    return () => computation.stop();
   }, []);
+
+  useEffect(() => {
+    const handle = Meteor.subscribe('employees');
+    const logsHandle = Meteor.subscribe('checkLogs', startDate, endDate);
+    const computation = Tracker.autorun(() => {
+      if (handle.ready() && logsHandle.ready()) {
+        const startOfStartDate = new Date(startDate);
+        startOfStartDate.setHours(0, 0, 0, 0);
+        const endOfEndDate = new Date(endDate);
+        endOfEndDate.setHours(23, 59, 59, 999);
+
+        const employees = Employees.find().fetch();
+
+        const employeeStats = employees.map((employee) => {
+          const logs = CheckLogs.find({
+            employeeId: employee._id,
+            date: {
+              $gte: startOfStartDate,
+              $lt: endOfEndDate,
+            },
+          }).fetch();
+
+          const totalTimeWorked = logs.reduce((total, log) => {
+            if (log.checkInTimestamp && log.checkOutTimestamp) {
+              const checkInTime = new Date(log.checkInTimestamp).getTime();
+              const checkOutTime = new Date(log.checkOutTimestamp).getTime();
+              const duration = (checkOutTime - checkInTime) / (1000 * 60 * 60); // convert to hours
+              return total + duration;
+            }
+            return total;
+          }, 0);
+
+          return {
+            employeeId: employee._id,
+            fullName: employee.fullName,
+            hoursWorked: totalTimeWorked.toFixed(2), // convert to string with 2 decimal points
+          };
+        });
+
+        setEmployeeStats(employeeStats);
+      }
+    });
+
+    return () => computation.stop();
+  }, [startDate, endDate]);
 
   useEffect(() => {
     if (selectedEmployee) {
       const employee = Employees.findOne({ _id: selectedEmployee });
       if (employee) {
-        const checkLogs = CheckLogs.find({ employeeId: selectedEmployee }).fetch();
-        const totalTimeWorked = checkLogs.reduce((acc, log) => {
+        const logs = CheckLogs.find({ employeeId: employee._id }).fetch();
+        const totalTimeWorked = logs.reduce((total, log) => {
           if (log.checkInTimestamp && log.checkOutTimestamp) {
-            return acc + (new Date(log.checkOutTimestamp) - new Date(log.checkInTimestamp));
+            const checkInTime = new Date(log.checkInTimestamp).getTime();
+            const checkOutTime = new Date(log.checkOutTimestamp).getTime();
+            const duration = (checkOutTime - checkInTime) / (1000 * 60 * 60); // convert to hours
+            return total + duration;
           }
-          return acc;
+          return total;
         }, 0);
-        const daysWorked = new Set(checkLogs.map(log => log.date.toDateString())).size;
-        const dailyAverage = totalTimeWorked / daysWorked / (1000 * 60 * 60); // in hours
 
-        setEmployeeStats({
+        const dailyAverage = (totalTimeWorked / logs.length).toFixed(2);
+
+        setEmployeeDetails({
           fullName: employee.fullName,
-          totalTimeWorked: (totalTimeWorked / (1000 * 60 * 60)).toFixed(2), // in hours
-          dailyAverage: dailyAverage.toFixed(2) // in hours
+          totalTimeWorked: totalTimeWorked.toFixed(2),
+          dailyAverage,
         });
       }
     } else {
-      setEmployeeStats({});
+      setEmployeeDetails(null);
     }
   }, [selectedEmployee]);
 
   useEffect(() => {
-    const employees = Employees.find().fetch();
-    const leaderboardData = employees.map(employee => {
-      const checkLogs = CheckLogs.find({ employeeId: employee._id }).fetch();
-      const totalTimeWorked = checkLogs.reduce((acc, log) => {
-        if (log.checkInTimestamp && log.checkOutTimestamp) {
-          return acc + (new Date(log.checkOutTimestamp) - new Date(log.checkInTimestamp));
-        }
-        return acc;
-      }, 0);
-      return {
-        employeeId: employee._id,
-        fullName: employee.fullName,
-        hoursWorked: (totalTimeWorked / (1000 * 60 * 60)).toFixed(2) // in hours
-      };
-    }).sort((a, b) => b.hoursWorked - a.hoursWorked);
+    // Calculate the start and end dates of the week based on the selected start date
+    const startOfWeek = new Date(startDate);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
 
-    setLeaderboard(leaderboardData);
-  }, []);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
 
-  useEffect(() => {
-    const startOfStartDate = new Date(startDate);
-    startOfStartDate.setHours(0, 0, 0, 0);
-    const endOfEndDate = new Date(endDate);
-    endOfEndDate.setHours(23, 59, 59, 999);
+    const handle = Meteor.subscribe('checkLogs', startOfWeek, endOfWeek);
+    const computation = Tracker.autorun(() => {
+      if (handle.ready()) {
+        const logs = CheckLogs.find({
+          date: {
+            $gte: startOfWeek,
+            $lt: endOfWeek,
+          },
+        }).fetch();
 
-    const filter = {
-      date: {
-        $gte: startOfStartDate,
-        $lt: endOfEndDate,
-      },
-    };
+        const checkInsByDay = Array(7).fill(0);
+        logs.forEach((log) => {
+          const day = new Date(log.date).getDay();
+          checkInsByDay[day]++;
+        });
 
-    const checkLogs = CheckLogs.find(filter).fetch();
-    const groupedByWeek = {};
-
-    checkLogs.forEach(log => {
-      const weekNumber = getWeekNumber(new Date(log.date));
-      if (!groupedByWeek[weekNumber]) {
-        groupedByWeek[weekNumber] = 0;
+        setWeeklyCheckIns(checkInsByDay);
       }
-      groupedByWeek[weekNumber] += 1;
     });
 
-    setCheckInsByWeek(groupedByWeek);
-  }, [startDate, endDate]);
+    return () => computation.stop();
+  }, [startDate]);
 
-  const getWeekNumber = (date) => {
-    const firstJan = new Date(date.getFullYear(), 0, 1);
-    const days = Math.floor((date - firstJan) / (24 * 60 * 60 * 1000));
-    return Math.ceil((date.getDay() + 1 + days) / 7);
+  const handleEmployeeChange = (event) => {
+    setSelectedEmployee(event.target.value);
   };
+
+  const leaderboard = employeeStats.sort((a, b) => b.hoursWorked - a.hoursWorked);
 
   return (
     <div className="admin-dashboard">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-      <div className="mb-4 flex space-x-4">
+      <div className="flex justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Total Employees: {totalEmployees}</h1>
+        </div>
         <div>
           <label className="block mb-2 text-sm font-medium text-gray-700">Start Date</label>
           <DatePicker
@@ -120,93 +163,70 @@ export default function AdminDashboard() {
             className="px-4 py-2 border rounded-md"
           />
         </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="p-4 border rounded-md shadow-md">
-          <h2 className="text-xl font-bold">Total Employees</h2>
-          <p className="text-3xl">{totalEmployees}</p>
-        </div>
-        <div className="p-4 border rounded-md shadow-md">
-          <h2 className="text-xl font-bold">Select Employee</h2>
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">Select Employee</label>
           <select
             value={selectedEmployee}
-            onChange={(e) => setSelectedEmployee(e.target.value)}
-            className="block w-full px-4 py-2 border rounded-md"
+            onChange={handleEmployeeChange}
+            className="px-4 py-2 border rounded-md"
           >
-            <option value="">Select Employee</option>
-            {Employees.find().fetch().map((employee) => (
-              <option key={employee._id} value={employee._id}>
+            <option value="">All Employees</option>
+            {employeeStats.map((employee) => (
+              <option key={employee.employeeId} value={employee.employeeId}>
                 {employee.fullName}
               </option>
             ))}
           </select>
-          {selectedEmployee && (
-            <div className="mt-4">
-              <h3 className="text-lg font-bold">Employee Stats</h3>
-              <p><strong>Full Name:</strong> {employeeStats.fullName}</p>
-              <p><strong>Total Time Worked:</strong> {employeeStats.totalTimeWorked} hours</p>
-              <p><strong>Daily Average Hours:</strong> {employeeStats.dailyAverage} hours</p>
-            </div>
-          )}
         </div>
       </div>
-      <div className="p-4 border rounded-md shadow-md mb-4">
-        <h2 className="text-xl font-bold">Employee Leaderboard</h2>
+      {employeeDetails && (
+        <div className="bg-white shadow-md rounded-md p-4 mb-4">
+          <h2 className="text-xl font-bold mb-2">Employee Details</h2>
+          <p><strong>Full Name:</strong> {employeeDetails.fullName}</p>
+          <p><strong>Total Time Worked:</strong> {employeeDetails.totalTimeWorked} hours</p>
+          <p><strong>Daily Average Hours:</strong> {employeeDetails.dailyAverage} hours</p>
+        </div>
+      )}
+      <div className="bg-white shadow-md rounded-md p-4 mb-4">
+        <h2 className="text-xl font-bold mb-2">Employee Leaderboard</h2>
         <table className="min-w-full bg-white border rounded-md" style={{ tableLayout: 'fixed' }}>
           <thead className="bg-gray-200">
             <tr>
-              <th className="py-2 px-4 border-b text-center">Rank</th>
-              <th className="py-2 px-4 border-b text-center">Full Name</th>
-              <th className="py-2 px-4 border-b text-center">Total Hours Worked</th>
+              <th className="py-2 px-4 border-b" style={{ width: '70%' }}>Full Names</th>
+              <th className="py-2 px-4 border-b" style={{ width: '30%' }}>Total Hours Worked</th>
             </tr>
           </thead>
           <tbody className="font-worksans text-black">
             {leaderboard.map((entry, index) => (
               <tr
                 key={entry.employeeId}
-                className={
-                  index === 0 ? 'bg-yellow-100' :
-                  index === 1 ? 'bg-gray-100' :
-                  index === 2 ? 'bg-orange-100' : ''
-                }
+                className={index === 0 ? 'bg-yellow-100' : index === 1 ? 'bg-gray-100' : index === 2 ? 'bg-orange-100' : ''}
               >
-                <td className="py-2 px-4 border-b text-center">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}</td>
-                <td className="py-2 px-4 border-b text-center">{entry.fullName}</td>
-                <td className="py-2 px-4 border-b text-center">{entry.hoursWorked}</td>
+                <td className="py-2 px-4 border-b text-justify">
+                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''} {entry.fullName}
+                </td>
+                <td className="py-2 px-4 border-b text-justify">{entry.hoursWorked}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="p-4 border rounded-md shadow-md">
-        <h2 className="text-xl font-bold mb-4">Weekly Check-ins</h2>
+      <div className="bg-white shadow-md rounded-md p-4">
+        <h2 className="text-xl font-bold mb-2">Weekly Check-ins</h2>
         <Bar
           data={{
-            labels: Object.keys(checkInsByWeek),
-            datasets: [
-              {
-                label: 'Number of Check-ins',
-                data: Object.values(checkInsByWeek),
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-              },
-            ],
+            labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            datasets: [{
+              label: 'Check-ins',
+              data: weeklyCheckIns,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1,
+            }],
           }}
           options={{
-            responsive: true,
             scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: 'Week',
-                },
-              },
               y: {
-                title: {
-                  display: true,
-                  text: 'Check-ins',
-                },
                 beginAtZero: true,
               },
             },
