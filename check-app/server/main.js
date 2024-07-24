@@ -7,7 +7,7 @@ import '../imports/api/methods';
 import '../imports/api/publications';
 import { Employees } from '../imports/api/employees';
 import { CheckLogs } from '../imports/api/checkLogs';
-
+import './api'; 
 Meteor.startup(() => {
   // Initialization code here
 

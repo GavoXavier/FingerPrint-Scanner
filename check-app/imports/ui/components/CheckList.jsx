@@ -6,6 +6,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import ReactToPrint from 'react-to-print';
 import { CSVLink } from 'react-csv';
+import moment from 'moment';
 
 export default function CheckList() {
   const [checkLogs, setCheckLogs] = useState([]);
@@ -14,6 +15,7 @@ export default function CheckList() {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [totalHours, setTotalHours] = useState(0);
   const componentRef = useRef();
 
   useEffect(() => {
@@ -53,6 +55,13 @@ export default function CheckList() {
           return { ...log, employee };
         });
         setCheckLogs(logsWithEmployeeDetails);
+
+        if (selectedEmployee) {
+          const totalMinutes = logs.reduce((acc, log) => acc + Math.floor((new Date(log.checkOutTimestamp) - new Date(log.checkInTimestamp)) / (1000 * 60)), 0);
+          setTotalHours((totalMinutes / 60).toFixed(2));
+        } else {
+          setTotalHours(0);
+        }
       }
     });
 
@@ -67,19 +76,22 @@ export default function CheckList() {
     setSelectedStatus(event.target.value);
   };
 
-  const csvData = checkLogs.map((log) => ({
-    fullName: log.employee?.fullName,
-    role: log.employee?.role,
-    checkInTimestamp: log.checkInTimestamp ? new Date(log.checkInTimestamp).toLocaleString() : '',
-    checkOutTimestamp: log.checkOutTimestamp ? new Date(log.checkOutTimestamp).toLocaleString() : '',
-    status: log.status,
-  }));
+  const csvData = [
+    ["Full Names", "Role", "Checked In", "Checked Out", "Status"],
+    ...checkLogs.map(log => [
+      log.employee?.fullName,
+      log.employee?.role,
+      log.checkInTimestamp ? new Date(log.checkInTimestamp).toLocaleString() : '',
+      log.checkOutTimestamp ? new Date(log.checkOutTimestamp).toLocaleString() : '',
+      log.status
+    ])
+  ];
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Check Logs</h1>
-      <div className="mb-4 flex space-x-4">
-        <div>
+      <h1 className="text-3xl font-bold mb-4 text-center">Attendance Report</h1>
+      <div className="mb-4 flex flex-col md:flex-row md:space-x-4">
+        <div className="mb-4 md:mb-0">
           <label className="block mb-2 text-sm font-medium text-gray-700">Start Date</label>
           <DatePicker
             selected={startDate}
@@ -87,7 +99,7 @@ export default function CheckList() {
             className="px-4 py-2 border rounded-md"
           />
         </div>
-        <div>
+        <div className="mb-4 md:mb-0">
           <label className="block mb-2 text-sm font-medium text-gray-700">End Date</label>
           <DatePicker
             selected={endDate}
@@ -95,7 +107,7 @@ export default function CheckList() {
             className="px-4 py-2 border rounded-md"
           />
         </div>
-        <div>
+        <div className="mb-4 md:mb-0">
           <label className="block mb-2 text-sm font-medium text-gray-700">Employee</label>
           <select
             value={selectedEmployee}
@@ -110,7 +122,7 @@ export default function CheckList() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="mb-4 md:mb-0">
           <label className="block mb-2 text-sm font-medium text-gray-700">Status</label>
           <select
             value={selectedStatus}
@@ -122,15 +134,34 @@ export default function CheckList() {
             <option value="Checked out">Checked Out</option>
           </select>
         </div>
-        <ReactToPrint
-          trigger={() => <button className="px-4 py-2 bg-blue-500 text-white rounded-md">Print</button>}
-          content={() => componentRef.current}
-        />
-        <CSVLink data={csvData} filename="check_logs.csv" className="px-4 py-2 bg-green-500 text-white rounded-md">
-          Export to CSV
-        </CSVLink>
+        <div className="mb-4 md:mb-0 flex flex-col justify-end space-y-2">
+          <ReactToPrint
+            trigger={() => <button className="px-4 py-2 bg-blue-500 text-white rounded-md">Print</button>}
+            content={() => componentRef.current}
+          />
+          <CSVLink
+            data={csvData}
+            filename={"attendance-report.csv"}
+            className="px-4 py-2 bg-green-500 text-white rounded-md"
+          >
+            Download CSV
+          </CSVLink>
+        </div>
       </div>
-      <div ref={componentRef}>
+      <div ref={componentRef} className="bg-white p-4 rounded-md shadow-md">
+        <h2 className="text-2xl font-bold mb-2 text-center">Attendance Report</h2>
+        <p className="text-sm mb-2 text-center">
+          <strong>Date generated:</strong> {new Date().toLocaleString()}
+        </p>
+        <p className="text-sm mb-2 text-center">
+          <strong>Date range selected:</strong> {moment(startDate).format('MM/DD/YYYY')} - {moment(endDate).format('MM/DD/YYYY')}
+        </p>
+        {selectedEmployee && (
+          <p className="text-sm mb-2 text-center">
+            <strong>Specific User:</strong> {employees.find(emp => emp._id === selectedEmployee)?.fullName} <br />
+            <strong>Total Hours Worked:</strong> {totalHours} hours
+          </p>
+        )}
         <table className="min-w-full bg-white border rounded-md" style={{ tableLayout: 'fixed' }}>
           <thead className="bg-gray-200">
             <tr>
