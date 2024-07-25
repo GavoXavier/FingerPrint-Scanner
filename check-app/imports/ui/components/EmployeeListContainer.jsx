@@ -19,9 +19,14 @@ export default function EmployeeListContainer() {
   }, []);
 
   return (
-    <div className="employee-list-container">
-      <div className="main-content p-4">
-        <EmployeeList employees={employees} />
+    <div className="employee-list-container min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
+      <div className="container mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Employee List</h2>
+        {employees.length > 0 ? (
+          <EmployeeList employees={employees} />
+        ) : (
+          <p className="text-gray-600 dark:text-gray-300">Loading employees...</p>
+        )}
       </div>
     </div>
   );
