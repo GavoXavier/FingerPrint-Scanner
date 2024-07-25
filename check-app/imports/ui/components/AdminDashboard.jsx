@@ -220,14 +220,14 @@ export default function AdminDashboard() {
                 className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
-            <div>
+            {/* <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
               <DatePicker
                 selected={endDate}
                 onChange={(date) => setEndDate(date)}
                 className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100"
               />
-            </div>
+            </div> */}
           </div>
           <Bar
             data={{

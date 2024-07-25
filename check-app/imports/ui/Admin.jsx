@@ -19,12 +19,12 @@ export default function Admin() {
   }, [darkMode]);
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+    <div className={`flex flex-col md:flex-row min-h-screen ${darkMode ? 'dark' : ''}`}>
       <Navbar1 />
-      <div className="flex justify-start p-4 mt-16 ">
-        <Switch isOn={darkMode} handleToggle={() => setDarkMode(!darkMode)} />
-      </div>
       <div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6">
+        <div className="flex justify-end p-4">
+          <Switch isOn={darkMode} handleToggle={() => setDarkMode(!darkMode)} />
+        </div>
         <div className="container mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
           <Routes>
             <Route path="admin-dashboard" element={<AdminDashboard />} />
