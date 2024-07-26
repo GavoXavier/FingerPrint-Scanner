@@ -100,31 +100,31 @@ export default function CheckList() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-      <div className="container mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6">
+      <div className="container mx-auto bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
         <div className="mb-4 flex flex-wrap space-y-4 md:space-y-0 md:space-x-4">
-          <div>
+          <div className="w-full md:w-1/2 lg:w-1/4">
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
-              className="px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
+              className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
             />
           </div>
-          <div>
+          <div className="w-full md:w-1/2 lg:w-1/4">
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
-              className="px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
+              className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
             />
           </div>
-          <div>
+          <div className="w-full md:w-1/2 lg:w-1/4">
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Employee</label>
             <select
               value={selectedEmployee}
               onChange={handleEmployeeChange}
-              className="px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
+              className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
             >
               <option value="">All Employees</option>
               {employees.map((employee) => (
@@ -134,25 +134,31 @@ export default function CheckList() {
               ))}
             </select>
           </div>
-          <div>
+          <div className="w-full md:w-1/2 lg:w-1/4">
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
             <select
               value={selectedStatus}
               onChange={handleStatusChange}
-              className="px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
+              className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
             >
               <option value="">All Status</option>
               <option value="Checked in">Checked In</option>
               <option value="Checked out">Checked Out</option>
             </select>
           </div>
-          <button
-            onClick={() => generatePdf({ checkLogs, selectedEmployee, employees }, startDate, endDate, totalHours, averageHours)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
-          >
-            Download PDF
-          </button>
-          <CSVLink data={csvData} filename={"check_logs.csv"} className="px-4 py-2 bg-green-500 text-white rounded-md">Download CSV</CSVLink>
+          <div className="w-full md:w-1/2 lg:w-1/4">
+            <button
+              onClick={() => generatePdf({ checkLogs, selectedEmployee, employees }, startDate, endDate, totalHours, averageHours)}
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-md mt-4 md:mt-0"
+            >
+              Download PDF
+            </button>
+          </div>
+          <div className="w-full md:w-1/2 lg:w-1/4">
+            <CSVLink data={csvData} filename={"check_logs.csv"} className="w-full px-4 py-2 bg-green-500 text-white rounded-md mt-4 md:mt-0">
+              Download CSV
+            </CSVLink>
+          </div>
         </div>
         <div>
           <div className="text-center mb-4">

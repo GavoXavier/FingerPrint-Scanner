@@ -1,104 +1,12 @@
-// import React, { useState } from 'react';
-// import { Link, useNavigate } from 'react-router-dom';
-// import { Meteor } from 'meteor/meteor';
-// import { HomeIcon, UserGroupIcon, CreditCardIcon, DocumentReportIcon, LogoutIcon, MenuIcon, XIcon } from '@heroicons/react/solid';
-
-// export default function Navbar1() {
-//   const [isExpanded, setIsExpanded] = useState(false);
-//   const navigate = useNavigate();
-
-//   const toggleNavbar = () => {
-//     setIsExpanded(!isExpanded);
-//   };
-
-//   const handleLogout = () => {
-//     Meteor.logout(() => {
-//       navigate('/home');
-//     });
-//   };
-
-//   return (
-//     <nav className={`flex flex-col justify-between border-e bg-white dark:bg-gray-800 ${isExpanded ? 'w-64' : 'w-20'} transition-width duration-300`}>
-//       <div>
-//         <div className="flex items-center justify-center p-4">
-//           <img src="/Admin.jpg" alt="Admin" className="h-12 w-12 rounded-full" />
-//         </div>
-//         <div className="flex items-center justify-center p-2">
-//           <button onClick={toggleNavbar}>
-//             {isExpanded ? <XIcon className="h-6 w-6 text-gray-800 dark:text-gray-100" /> : <MenuIcon className="h-6 w-6 text-gray-800 dark:text-gray-100" />}
-//           </button>
-//         </div>
-
-//         <div className="border-t border-gray-100 dark:border-gray-700">
-//           <div className="px-2">
-//             <ul className="space-y-1 border-t border-gray-100 dark:border-gray-700 pt-4">
-//               <li>
-//                 <Link
-//                   to="/admin/admin-dashboard"
-//                   className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-//                 >
-//                   <HomeIcon className="h-5 w-5 opacity-75" />
-//                   {isExpanded && <span className="ml-4">Admin Dashboard</span>}
-//                 </Link>
-//               </li>
-
-//               <li>
-//                 <Link
-//                   to="/admin/add-employee"
-//                   className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-//                 >
-//                   <UserGroupIcon className="h-5 w-5 opacity-75" />
-//                   {isExpanded && <span className="ml-4">Add Employee</span>}
-//                 </Link>
-//               </li>
-
-//               <li>
-//                 <Link
-//                   to="/admin/check-list"
-//                   className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-//                 >
-//                   <CreditCardIcon className="h-5 w-5 opacity-75" />
-//                   {isExpanded && <span className="ml-4">Check List</span>}
-//                 </Link>
-//               </li>
-
-//               <li>
-//                 <Link
-//                   to="/admin/employee-list"
-//                   className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-//                 >
-//                   <DocumentReportIcon className="h-5 w-5 opacity-75" />
-//                   {isExpanded && <span className="ml-4">Employee List</span>}
-//                 </Link>
-//               </li>
-//             </ul>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="sticky inset-x-0 bottom-0 border-t border-gray-100 bg-white p-2 dark:border-gray-700 dark:bg-gray-800">
-//         <button
-//           onClick={handleLogout}
-//           className={`group relative flex items-center w-full justify-center rounded-lg px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-//         >
-//           <LogoutIcon className="h-5 w-5 opacity-75" />
-//           {isExpanded && <span className="ml-4">Logout</span>}
-//         </button>
-//       </div>
-//     </nav>
-//   );
-// }
-
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
-import { HomeIcon, UserGroupIcon, CreditCardIcon, DocumentReportIcon, LogoutIcon, MenuIcon, XIcon } from '@heroicons/react/solid';
+import { HomeIcon, UserGroupIcon, CreditCardIcon, DocumentReportIcon, LogoutIcon, MenuIcon, XIcon, SunIcon, MoonIcon } from '@heroicons/react/solid';
 import ProfileModal from './ProfileModal';
 
-export default function Navbar1() {
+export default function Navbar1({ darkMode, setDarkMode }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const toggleNavbar = () => {
@@ -111,82 +19,63 @@ export default function Navbar1() {
     });
   };
 
-  const handleProfileClick = () => {
-    setModalOpen(true);
-  };
-
   return (
-    <nav className={`flex flex-col justify-between border-e bg-white dark:bg-gray-800 ${isExpanded ? 'w-64' : 'w-20'} transition-width duration-300`}>
-      <div>
-        <div className="flex items-center justify-center p-4">
-          <button onClick={handleProfileClick} className="focus:outline-none">
-            <img src="/Admin.jpg" alt="Admin" className="h-12 w-12 rounded-full border-2 border-white" />
+    <>
+      <nav className="fixed top-0 left-0 z-50 flex items-center justify-between w-full bg-gray-900 dark:bg-gray-800 p-4 md:w-64 md:flex-col md:justify-start md:h-full">
+        <div className="flex items-center justify-between w-full md:flex-col md:items-center">
+          <img
+            src="/Admin.jpg"
+            alt="Admin"
+            className="h-12 w-12 rounded-full cursor-pointer"
+            onClick={() => setIsModalOpen(true)}
+          />
+          <button onClick={toggleNavbar} className="md:hidden">
+            {isExpanded ? <XIcon className="h-6 w-6 text-gray-100" /> : <MenuIcon className="h-6 w-6 text-gray-100" />}
           </button>
         </div>
-        <div className="flex items-center justify-center p-2">
-          <button onClick={toggleNavbar}>
-            {isExpanded ? <XIcon className="h-6 w-6 text-gray-800 dark:text-gray-100" /> : <MenuIcon className="h-6 w-6 text-gray-800 dark:text-gray-100" />}
-          </button>
+
+        <div className={`mt-4 md:flex md:flex-col md:items-center ${isExpanded ? 'block' : 'hidden'}`}>
+          <ul className="space-y-4 w-full">
+            <li>
+              <Link to="/admin/admin-dashboard" className="flex items-center justify-center md:justify-start px-4 py-2 text-gray-100 rounded-lg hover:bg-gray-700">
+                <HomeIcon className="h-6 w-6" />
+                <span className="ml-2">Admin Dashboard</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/add-employee" className="flex items-center justify-center md:justify-start px-4 py-2 text-gray-100 rounded-lg hover:bg-gray-700">
+                <UserGroupIcon className="h-6 w-6" />
+                <span className="ml-2">Add Employee</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/check-list" className="flex items-center justify-center md:justify-start px-4 py-2 text-gray-100 rounded-lg hover:bg-gray-700">
+                <CreditCardIcon className="h-6 w-6" />
+                <span className="ml-2">Check List</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/employee-list" className="flex items-center justify-center md:justify-start px-4 py-2 text-gray-100 rounded-lg hover:bg-gray-700">
+                <DocumentReportIcon className="h-6 w-6" />
+                <span className="ml-2">Employee List</span>
+              </Link>
+            </li>
+            <li>
+              <button onClick={() => setDarkMode(!darkMode)} className="flex items-center justify-center md:justify-start p-2 rounded-lg focus:outline-none">
+                {darkMode ? <SunIcon className="h-6 w-6 text-yellow-500" /> : <MoonIcon className="h-6 w-6 text-gray-100" />}
+                <span className="ml-2">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+            </li>
+            <li>
+              <button onClick={handleLogout} className="flex items-center justify-center md:justify-start px-4 py-2 text-sm text-gray-100 rounded-lg hover:bg-gray-700">
+                <LogoutIcon className="h-5 w-5" />
+                <span className="ml-2">Logout</span>
+              </button>
+            </li>
+          </ul>
         </div>
-
-        <div className="border-t border-gray-100 dark:border-gray-700">
-          <div className="px-2">
-            <ul className="space-y-1 border-t border-gray-100 dark:border-gray-700 pt-4">
-              <li>
-                <Link
-                  to="/admin/admin-dashboard"
-                  className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-                >
-                  <HomeIcon className="h-5 w-5 opacity-75" />
-                  {isExpanded && <span className="ml-4">Admin Dashboard</span>}
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/admin/add-employee"
-                  className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-                >
-                  <UserGroupIcon className="h-5 w-5 opacity-75" />
-                  {isExpanded && <span className="ml-4">Add Employee</span>}
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/admin/check-list"
-                  className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-                >
-                  <CreditCardIcon className="h-5 w-5 opacity-75" />
-                  {isExpanded && <span className="ml-4">Check List</span>}
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/admin/employee-list"
-                  className={`group relative flex items-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-                >
-                  <DocumentReportIcon className="h-5 w-5 opacity-75" />
-                  {isExpanded && <span className="ml-4">Employee List</span>}
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="sticky inset-x-0 bottom-0 border-t border-gray-100 bg-white p-2 dark:border-gray-700 dark:bg-gray-800">
-        <button
-          onClick={handleLogout}
-          className={`group relative flex items-center w-full justify-center rounded-lg px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white ${isExpanded ? 'justify-start' : 'justify-center'}`}
-        >
-          <LogoutIcon className="h-5 w-5 opacity-75" />
-          {isExpanded && <span className="ml-4">Logout</span>}
-        </button>
-      </div>
-      {isModalOpen && <ProfileModal onClose={() => setModalOpen(false)} />}
-    </nav>
+      </nav>
+      {isModalOpen && <ProfileModal onClose={() => setIsModalOpen(false)} />}
+    </>
   );
 }
-

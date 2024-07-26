@@ -141,10 +141,10 @@ export default function AdminDashboard() {
   const leaderboard = employeeStats.sort((a, b) => b.hoursWorked - a.hoursWorked);
 
   return (
-    <div className="admin-dashboard min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
+    <div className="admin-dashboard min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6">
       <div className="container mx-auto">
-        <div className="flex justify-between items-start mb-4 flex-wrap">
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-md p-4 backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70 mb-4 md:mb-0">
+        <div className="flex flex-wrap justify-between items-start mb-4 space-y-4 md:space-y-0">
+          <div className="bg-white dark:bg-gray-800 shadow-md rounded-md p-4 w-full sm:w-auto backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
             <div className="flex items-center space-x-4">
               <img src="/user.webp" alt="Total Employees" className="w-12 h-12 rounded-full" />
               <div>
@@ -153,22 +153,20 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex space-x-4 w-full md:w-auto">
-            <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Select Employee</label>
-              <select
-                value={selectedEmployee}
-                onChange={handleEmployeeChange}
-                className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 w-full"
-              >
-                <option value="">All Employees</option>
-                {employeeStats.map((employee) => (
-                  <option key={employee.employeeId} value={employee.employeeId}>
-                    {employee.fullName}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="w-full sm:w-auto">
+            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Select Employee</label>
+            <select
+              value={selectedEmployee}
+              onChange={handleEmployeeChange}
+              className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 w-full"
+            >
+              <option value="">All Employees</option>
+              {employeeStats.map((employee) => (
+                <option key={employee.employeeId} value={employee.employeeId}>
+                  {employee.fullName}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         {employeeDetails && (
@@ -181,53 +179,47 @@ export default function AdminDashboard() {
         )}
         <div className="bg-white dark:bg-gray-800 shadow-md rounded-md p-4 mb-4 backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
           <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">Employee Leaderboard</h2>
-          <table className="min-w-full bg-white dark:bg-gray-800 border rounded-md">
-            <thead className="bg-gray-200 dark:bg-gray-700">
-              <tr>
-                <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Rank</th>
-                <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Full Names</th>
-                <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Total Hours Worked</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.map((entry, index) => (
-                <tr
-                  key={entry.employeeId}
-                  className={`${
-                    index === 0 ? 'bg-green-100 dark:bg-green-700' : 
-                    index === 1 ? 'bg-gray-100 dark:bg-gray-700' : 
-                    index === 2 ? 'bg-orange-100 dark:bg-orange-700' : ''
-                  }`}
-                >
-                  <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100 text-center">
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                  </td>
-                  <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">{entry.fullName}</td>
-                  <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100 text-right">{entry.hoursWorked}</td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white dark:bg-gray-800 border rounded-md">
+              <thead className="bg-gray-200 dark:bg-gray-700">
+                <tr>
+                  <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Rank</th>
+                  <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Full Names</th>
+                  <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Total Hours Worked</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leaderboard.map((entry, index) => (
+                  <tr
+                    key={entry.employeeId}
+                    className={`${
+                      index === 0 ? 'bg-green-100 dark:bg-green-700' : 
+                      index === 1 ? 'bg-gray-100 dark:bg-gray-700' : 
+                      index === 2 ? 'bg-orange-100 dark:bg-orange-700' : ''
+                    }`}
+                  >
+                    <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100 text-center">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">{entry.fullName}</td>
+                    <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100 text-right">{entry.hoursWorked}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="bg-white dark:bg-gray-800 shadow-md rounded-md p-4 backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
           <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Weekly Check-ins</h2>
-          <div className="flex space-x-4 mb-4">
-            <div>
+          <div className="flex flex-wrap space-x-4 mb-4">
+            <div className="w-full sm:w-auto">
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
-                className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100"
+                className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 w-full"
               />
             </div>
-            {/* <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                className="px-4 py-2 border rounded-md bg-white dark:bg-gray-800 dark:text-gray-100"
-              />
-            </div> */}
           </div>
           <Bar
             data={{

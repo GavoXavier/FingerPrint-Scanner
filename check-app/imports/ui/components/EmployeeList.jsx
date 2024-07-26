@@ -1,30 +1,44 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 
-export default function EmployeeList({ employees }) {
+export default function EmployeeList({ employees, checkLogs }) {
   const handleRemove = (employeeId) => {
-    Meteor.call('employees.remove', employeeId, (error) => {
-      if (error) {
-        alert('Error removing employee: ' + error.reason);
-      }
-    });
+    if (window.confirm(`Are you sure you want to remove ${employees.find(e => e._id === employeeId).fullName} from the system?`)) {
+      Meteor.call('employees.remove', employeeId, (error) => {
+        if (error) {
+          alert('Error removing employee: ' + error.reason);
+        }
+      });
+    }
+  };
+
+  const getStatus = (employeeId) => {
+    const latestLog = checkLogs.find(log => log.employeeId === employeeId);
+    return latestLog ? latestLog.status : 'No Status';
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
       {employees.map((employee) => (
-        <div key={employee._id} className="p-6 border rounded-lg shadow-md bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-center space-x-4">
+        <div key={employee._id} className="relative p-6 border rounded-lg shadow-md bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-600 opacity-60 blur-lg"></div>
+          <div className="relative flex items-center space-x-4">
             <img
               src="/user.webp"
               alt="Profile"
-              className="w-12 h-12 rounded-full"
+              className="w-16 h-16 rounded-full border-4 border-white dark:border-gray-800"
             />
             <div>
               <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{employee.fullName}</h3>
               <p className="text-gray-600 dark:text-gray-400">Role: {employee.role}</p>
-              <p className="text-gray-600 dark:text-gray-400">Email: {employee.email}</p>
+              <p className="text-gray-600 dark:text-gray-400">Age: {employee.age}</p>
               <p className="text-gray-600 dark:text-gray-400">Contact: {employee.contact}</p>
+              <p className={`text-gray-600 dark:text-gray-400 mt-2`}>
+                Status: 
+                <span className={`ml-2 px-2 py-1 rounded-md text-white ${getStatus(employee._id) === 'Checked in' ? 'bg-green-500' : 'bg-red-500'}`}>
+                  {getStatus(employee._id)}
+                </span>
+              </p>
             </div>
           </div>
           <button

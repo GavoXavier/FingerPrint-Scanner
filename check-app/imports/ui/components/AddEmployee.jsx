@@ -28,10 +28,10 @@ export default function AddEmployee() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Add Employee</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-8 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70 w-full max-w-md">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800 dark:text-gray-100">Add Employee</h1>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <input
             type="text"
             placeholder="Username"

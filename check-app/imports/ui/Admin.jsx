@@ -5,7 +5,6 @@ import AddEmployee from './components/AddEmployee';
 import CheckList from './components/CheckList';
 import EmployeeListContainer from './components/EmployeeListContainer';
 import AdminDashboard from './components/AdminDashboard';
-import Switch from './components/Switch';
 
 export default function Admin() {
   const [darkMode, setDarkMode] = useState(false);
@@ -19,13 +18,10 @@ export default function Admin() {
   }, [darkMode]);
 
   return (
-    <div className={`flex flex-col md:flex-row min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <Navbar1 />
-      <div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6">
-        <div className="flex justify-end p-4">
-          <Switch isOn={darkMode} handleToggle={() => setDarkMode(!darkMode)} />
-        </div>
-        <div className="container mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
+    <div className={`flex flex-col ${darkMode ? 'dark' : ''}`}>
+      <Navbar1 darkMode={darkMode} setDarkMode={setDarkMode} />
+      <div className="flex-grow ml-0 md:ml-64 transition-all duration-300">
+        <div className="p-4 sm:p-6 min-h-screen bg-gray-100 dark:bg-gray-900">
           <Routes>
             <Route path="admin-dashboard" element={<AdminDashboard />} />
             <Route path="add-employee" element={<AddEmployee />} />

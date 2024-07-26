@@ -3,7 +3,6 @@ import 'jspdf-autotable';
 
 const generatePdf = (data, startDate, endDate, totalHours, averageHours) => {
   const doc = new jsPDF();
-  console.log("Generating PDF...");
 
   doc.setFontSize(18);
   doc.text('Attendance Report', 105, 20, { align: 'center' });
@@ -30,7 +29,6 @@ const generatePdf = (data, startDate, endDate, totalHours, averageHours) => {
   });
 
   doc.save('attendance_report.pdf');
-  console.log("PDF Generated and saved!");
 };
 
 export default generatePdf;

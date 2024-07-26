@@ -34,3 +34,46 @@
   opacity: 1;
   transition: 0s;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .navbar {
+    width: 100%;
+    height: auto;
+  }
+  .navbar-content {
+    display: none;
+  }
+  .navbar-expanded {
+    display: block;
+  }
+}
+@media (min-width: 769px) {
+  .navbar {
+    width: 64px;
+    height: 100vh;
+  }
+  .navbar-content {
+    display: block;
+  }
+  .navbar-expanded {
+    display: none;
+  }
+}
+
+/* Additional styles for better touch targets */
+button, input, select {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+}
+
+/* Blurry background for dropdown menu */
+.blurry-bg {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.7);
+}
