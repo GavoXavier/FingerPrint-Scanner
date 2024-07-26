@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckLogs } from '../../api/checkLogs';
 import { Employees } from '../../api/employees';
 import { Tracker } from 'meteor/tracker';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import ReactToPrint from 'react-to-print';
 import { CSVLink } from 'react-csv';
+import generatePdf from './generatePdf'; // Import the PDF generation function
 
 export default function CheckList() {
   const [checkLogs, setCheckLogs] = useState([]);
@@ -14,7 +14,6 @@ export default function CheckList() {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const componentRef = useRef();
 
   useEffect(() => {
     const handle = Meteor.subscribe('employees');
@@ -67,18 +66,42 @@ export default function CheckList() {
     setSelectedStatus(event.target.value);
   };
 
-  const csvData = checkLogs.map(log => ({
-    fullName: log.employee?.fullName,
-    role: log.employee?.role,
-    checkIn: log.checkInTimestamp ? new Date(log.checkInTimestamp).toLocaleString() : '',
-    checkOut: log.checkOutTimestamp ? new Date(log.checkOutTimestamp).toLocaleString() : '',
-    status: log.status,
-  }));
+  const calculateTotalHours = () => {
+    return checkLogs.reduce((total, log) => {
+      if (log.checkInTimestamp && log.checkOutTimestamp) {
+        const checkInTime = new Date(log.checkInTimestamp).getTime();
+        const checkOutTime = new Date(log.checkOutTimestamp).getTime();
+        const duration = (checkOutTime - checkInTime) / (1000 * 60 * 60); // convert to hours
+        return total + duration;
+      }
+      return total;
+    }, 0);
+  };
+
+  const totalHours = calculateTotalHours();
+  const averageHours = (totalHours / checkLogs.length).toFixed(2);
+
+  const csvData = [
+    ['Attendance Report'],
+    [`Date Range: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`],
+    [`Employee: ${selectedEmployee ? employees.find(e => e._id === selectedEmployee)?.fullName : 'All Staff'}`],
+    [`Total Hours Worked: ${totalHours.toFixed(2)}`],
+    [`Average Hours Worked: ${averageHours}`],
+    [],
+    ['Full Names', 'Role', 'Checked In', 'Checked Out', 'Status', 'Total Hours'],
+    ...checkLogs.map(log => [
+      log.employee?.fullName,
+      log.employee?.role,
+      log.checkInTimestamp ? new Date(log.checkInTimestamp).toLocaleString() : '',
+      log.checkOutTimestamp ? new Date(log.checkOutTimestamp).toLocaleString() : '',
+      log.status,
+      log.checkInTimestamp && log.checkOutTimestamp ? ((new Date(log.checkOutTimestamp).getTime() - new Date(log.checkInTimestamp).getTime()) / (1000 * 60 * 60)).toFixed(2) : ''
+    ])
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
       <div className="container mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Check Logs</h1>
         <div className="mb-4 flex flex-wrap space-y-4 md:space-y-0 md:space-x-4">
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
@@ -123,13 +146,22 @@ export default function CheckList() {
               <option value="Checked out">Checked Out</option>
             </select>
           </div>
-          <ReactToPrint
-            trigger={() => <button className="px-4 py-2 bg-blue-500 text-white rounded-md">Print</button>}
-            content={() => componentRef.current}
-          />
+          <button
+            onClick={() => generatePdf({ checkLogs, selectedEmployee, employees }, startDate, endDate, totalHours, averageHours)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+          >
+            Download PDF
+          </button>
           <CSVLink data={csvData} filename={"check_logs.csv"} className="px-4 py-2 bg-green-500 text-white rounded-md">Download CSV</CSVLink>
         </div>
-        <div ref={componentRef}>
+        <div>
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Attendance Report</h2>
+            <p className="text-lg text-gray-700 dark:text-gray-300">Date Range: {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</p>
+            <p className="text-lg text-gray-700 dark:text-gray-300">Employee: {selectedEmployee ? employees.find(e => e._id === selectedEmployee)?.fullName : 'All Staff'}</p>
+            <p className="text-lg text-gray-700 dark:text-gray-300">Total Hours Worked: {totalHours.toFixed(2)}</p>
+            <p className="text-lg text-gray-700 dark:text-gray-300">Average Hours Worked: {averageHours}</p>
+          </div>
           <table className="min-w-full bg-white dark:bg-gray-800 border rounded-md mt-6">
             <thead className="bg-gray-200 dark:bg-gray-700">
               <tr>
@@ -138,6 +170,7 @@ export default function CheckList() {
                 <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Checked In</th>
                 <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Checked Out</th>
                 <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Status</th>
+                <th className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">Total Hours</th>
               </tr>
             </thead>
             <tbody>
@@ -151,6 +184,9 @@ export default function CheckList() {
                     <span className={`px-4 py-2 ${log.status === 'Checked in' ? 'bg-green-500' : 'bg-red-500'} text-white rounded-md`}>
                       {log.status}
                     </span>
+                  </td>
+                  <td className="py-2 px-4 border-b text-gray-800 dark:text-gray-100">
+                    {log.checkInTimestamp && log.checkOutTimestamp ? ((new Date(log.checkOutTimestamp).getTime() - new Date(log.checkInTimestamp).getTime()) / (1000 * 60 * 60)).toFixed(2) : ''}
                   </td>
                 </tr>
               ))}
